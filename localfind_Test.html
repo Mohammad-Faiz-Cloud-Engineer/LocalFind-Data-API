@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalFind API - Admin Console</title>
+    <style>
+        /* Reset to browser defaults - no design system */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #000;
+            background: #f5f5f5;
+        }
+
+        /* Header - simple gray bar */
+        .header {
+            background: #e0e0e0;
+            border-bottom: 1px solid #999;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .header-status {
+            font-size: 12px;
+            color: #333;
+        }
+
+        /* Main layout - simple 2-column */
+        .container {
+            display: flex;
+            min-height: calc(100vh - 37px);
+        }
+
+        /* Sidebar - white with gray border */
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #ccc;
+            padding: 16px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 4px 8px;
+            font-size: 13px;
+            border: 1px solid #999;
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        select:focus, input:focus {
+            outline: 1px solid #0066cc;
+            border-color: #0066cc;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-row > * {
+            flex: 1;
+        }
+
+        /* Buttons - standard gray buttons */
+        button {
+            padding: 6px 16px;
+            font-size: 13px;
+            border: 1px solid #999;
+            background: #f0f0f0;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        button:hover {
+            background: #e0e0e0;
+        }
+
+        button.primary {
+            background: #0066cc;
+            color: #fff;
+            border-color: #0052a3;
+        }
+
+        button.primary:hover {
+            background: #0052a3;
+        }
+
+        .button-bar {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Stats - simple boxes */
+        .stat-box {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Main content area */
+        .main {
+            flex: 1;
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .toolbar {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-info {
+            margin-left: auto;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Data table - standard HTML table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border: 1px solid #ccc;
+            font-size: 13px;
+        }
+
+        th {
+            background: #e8e8e8;
+            border: 1px solid #bbb;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        tr.selected {
+            background: #e6f2ff;
+        }
+
+        /* Links - standard blue */
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Status badges - simple colored text */
+        .status {
+            font-size: 12px;
+        }
+
+        .status.active {
+            color: #006600;
+        }
+
+        .status.inactive {
+            color: #cc0000;
+        }
+
+        /* Detail panel */
+        .detail-panel {
+            background: #fff;
+            border: 1px solid #ccc;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .detail-panel.show {
+            display: block;
+        }
+
+        .detail-header {
+            background: #e8e8e8;
+            border-bottom: 1px solid #ccc;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .detail-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+        }
+
+        .detail-close:hover {
+            background: #ddd;
+        }
+
+        .detail-content {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .detail-section {
+            border: 1px solid #eee;
+            padding: 12px;
+        }
+
+        .detail-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .detail-label {
+            width: 100px;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: #000;
+        }
+
+        /* Empty state */
+        .empty {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 48px;
+            text-align: center;
+            color: #666;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        /* Loading */
+        .loading {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 48px;
+            text-align: center;
+            color: #666;
+        }
+
+        /* Error */
+        .error {
+            background: #fff0f0;
+            border: 1px solid #cc0000;
+            padding: 16px;
+            color: #cc0000;
+            margin-bottom: 16px;
+        }
+
+        /* Utility */
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 4px;
+            font-size: 13px;
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+        }
+
+        .tab.active {
+            background: #fff;
+            border-color: #ccc;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">LocalFind API - Admin Console</div>
+        <div class="header-status">Connected to localfind-localfind.hf.space</div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <div class="section-title">Query Parameters</div>
+
+                <label for="endpoint">Endpoint</label>
+                <select id="endpoint">
+                    <option value="businesses">/api/businesses</option>
+                    <option value="categories">/api/categories</option>
+                    <option value="stats">/api/stats</option>
+                    <option value="search">/api/search</option>
+                    <option value="health">/api/health</option>
+                </select>
+
+                <div id="searchField" style="display: none;">
+                    <label for="searchQuery">Search Query</label>
+                    <input type="text" id="searchQuery" placeholder="Enter search term...">
+                </div>
+
+                <div id="filterFields">
+                    <label for="categoryFilter">Category Filter</label>
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                    </select>
+
+                    <label for="featuredFilter">Featured Filter</label>
+                    <select id="featuredFilter">
+                        <option value="">All</option>
+                        <option value="true">Featured Only</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="limit">Limit</label>
+                        <input type="number" id="limit" value="50" min="1" max="1000">
+                    </div>
+                    <div>
+                        <label for="offset">Offset</label>
+                        <input type="number" id="offset" value="0" min="0">
+                    </div>
+                </div>
+
+                <div class="button-bar">
+                    <button class="primary" onclick="executeQuery()">Execute Query</button>
+                    <button onclick="resetForm()">Reset</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Quick Stats</div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Businesses</div>
+                    <div class="stat-value" id="statTotal">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Categories</div>
+                    <div class="stat-value" id="statCategories">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Average Rating</div>
+                    <div class="stat-value" id="statRating">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Featured</div>
+                    <div class="stat-value" id="statFeatured">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="tabs">
+                <div class="tab active" data-tab="results">Results</div>
+                <div class="tab" data-tab="raw">Raw JSON</div>
+            </div>
+
+            <div id="tab-results">
+                <div class="toolbar">
+                    <button onclick="refreshData()">Refresh</button>
+                    <button onclick="exportCSV()">Export CSV</button>
+                    <div class="toolbar-info">
+                        <span id="recordInfo">No data loaded</span>
+                        <span style="margin-left: 16px; color: #999;">|</span>
+                        <span id="latencyInfo" style="margin-left: 16px;">-</span>
+                    </div>
+                </div>
+
+                <div id="content">
+                    <div class="empty">
+                        <div class="empty-title">No Data</div>
+                        <div>Configure query parameters and click "Execute Query" to load data.</div>
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="detailPanel">
+                    <div class="detail-header">
+                        <div class="detail-title">Record Details</div>
+                        <button class="detail-close" onclick="closeDetail()">×</button>
+                    </div>
+                    <div class="detail-content" id="detailContent"></div>
+                </div>
+            </div>
+
+            <div id="tab-raw" style="display: none;">
+                <pre id="rawJson" style="background: #fff; border: 1px solid #ccc; padding: 16px; overflow: auto; font-family: monospace; font-size: 12px; max-height: 600px;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://localfind-localfind.hf.space/api';
+        let currentData = [];
+        let currentRawData = null;
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadStats();
+            setupTabs();
+            setupEndpointListener();
+        });
+
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const tabName = tab.dataset.tab;
+                    document.getElementById('tab-results').style.display = tabName === 'results' ? 'block' : 'none';
+                    document.getElementById('tab-raw').style.display = tabName === 'raw' ? 'block' : 'none';
+                });
+            });
+        }
+
+        function setupEndpointListener() {
+            document.getElementById('endpoint').addEventListener('change', (e) => {
+                const endpoint = e.target.value;
+                document.getElementById('searchField').style.display = endpoint === 'search' ? 'block' : 'none';
+                document.getElementById('filterFields').style.display = endpoint === 'businesses' ? 'block' : 'none';
+            });
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const select = document.getElementById('categoryFilter');
+                    data.data.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.slug;
+                        option.textContent = `${cat.name} (${cat.count})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.data;
+                    document.getElementById('statTotal').textContent = stats.totalBusinesses;
+                    document.getElementById('statCategories').textContent = stats.categories;
+                    document.getElementById('statRating').textContent = stats.averageRating;
+                    document.getElementById('statFeatured').textContent = stats.featuredBusinesses;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function executeQuery() {
+            const startTime = performance.now();
+            const endpoint = document.getElementById('endpoint').value;
+            const content = document.getElementById('content');
+
+            content.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                let url = `${API_BASE}/${endpoint}`;
+                const params = new URLSearchParams();
+
+                if (endpoint === 'businesses') {
+                    const category = document.getElementById('categoryFilter').value;
+                    const featured = document.getElementById('featuredFilter').value;
+                    const limit = document.getElementById('limit').value;
+                    const offset = document.getElementById('offset').value;
+
+                    if (category) params.append('category', category);
+                    if (featured) params.append('featured', featured);
+                    if (limit) params.append('limit', limit);
+                    if (offset) params.append('offset', offset);
+                } else if (endpoint === 'search') {
+                    const query = document.getElementById('searchQuery').value.trim();
+                    if (!query) {
+                        throw new Error('Search query is required');
+                    }
+                    params.append('q', query);
+                }
+
+                if (params.toString()) url += '?' + params.toString();
+
+                const response = await fetch(url);
+                const latency = Math.round(performance.now() - startTime);
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                const data = await response.json();
+                currentRawData = data;
+                document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
+
+                if (endpoint === 'stats') {
+                    renderStats(data.data);
+                } else if (endpoint === 'categories') {
+                    renderCategories(data.data);
+                } else if (endpoint === 'health') {
+                    renderHealth(data);
+                } else {
+                    renderBusinessTable(data.data || []);
+                    currentData = data.data || [];
+                    document.getElementById('recordInfo').textContent = 
+                        `${data.count || currentData.length} records`;
+                }
+
+                document.getElementById('latencyInfo').textContent = `${latency}ms`;
+
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${escapeHtml(error.message)}
+                    </div>
+                `;
+            }
+        }
+
+        function renderBusinessTable(businesses) {
+            const content = document.getElementById('content');
+
+            if (businesses.length === 0) {
+                content.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-title">No Results</div>
+                        <div>No records found matching the query parameters.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Rating</th>
+                            <th>Status</th>
+                            <th>Phone</th>
+                            <th>Reviews</th>
+                            <th>Featured</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${businesses.map((b, i) => `
+                            <tr onclick="showDetail(${i})" id="row-${i}">
+                                <td>${b.id || i + 1}</td>
+                                <td><a href="#">${escapeHtml(b.name)}</a></td>
+                                <td>${escapeHtml(b.category)}</td>
+                                <td>${b.rating.toFixed(1)}</td>
+                                <td class="status ${b.status === 'open' ? 'active' : 'inactive'}">
+                                    ${b.status === 'open' ? 'Active' : 'Inactive'}
+                                </td>
+                                <td>${escapeHtml(b.phone)}</td>
+                                <td class="text-right">${b.reviewCount}</td>
+                                <td class="text-center">${b.featured ? 'Yes' : 'No'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        function renderCategories(categories) {
+            const content = document.getElementById('content');
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${categories.map(c => `
+                            <tr>
+                                <td>${escapeHtml(c.name)}</td>
+                                <td>${c.slug}</td>
+                                <td class="text-right">${c.count}</td>
+                                <td class="text-right">${((c.count / categories.reduce((a, b) => a + b.count, 0)) * 100).toFixed(1)}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            content.innerHTML = html;
+            document.getElementById('recordInfo').textContent = `${categories.length} categories`;
+        }
+
+        function renderStats(stats) {
+            const content = document.getElementById('content');
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Total Businesses</td><td class="text-right">${stats.totalBusinesses}</td><td>-</td></tr>
+                        <tr><td>Featured</td><td class="text-right">${stats.featuredBusinesses}</td><td class="text-right">${((stats.featuredBusinesses/stats.totalBusinesses)*100).toFixed(1)}%</td></tr>
+                        <tr><td>Verified</td><td class="text-right">${stats.verifiedBusinesses}</td><td class="text-right">${((stats.verifiedBusinesses/stats.totalBusinesses)*100).toFixed(1)}%</td></tr>
+                        <tr><td>Open Now</td><td class="text-right">${stats.openBusinesses}</td><td class="text-right">${((stats.openBusinesses/stats.totalBusinesses)*100).toFixed(1)}%</td></tr>
+                        <tr><td>Closed</td><td class="text-right">${stats.closedBusinesses}</td><td class="text-right">${((stats.closedBusinesses/stats.totalBusinesses)*100).toFixed(1)}%</td></tr>
+                        <tr><td>New</td><td class="text-right">${stats.newBusinesses}</td><td class="text-right">${((stats.newBusinesses/stats.totalBusinesses)*100).toFixed(1)}%</td></tr>
+                        <tr><td>Average Rating</td><td class="text-right">${stats.averageRating}</td><td>-</td></tr>
+                        <tr><td>Total Reviews</td><td class="text-right">${stats.totalReviews}</td><td>-</td></tr>
+                        <tr><td>Categories</td><td class="text-right">${stats.categories}</td><td>-</td></tr>
+                    </tbody>
+                </table>
+            `;
+
+            content.innerHTML = html;
+            document.getElementById('recordInfo').textContent = 'Statistics';
+        }
+
+        function renderHealth(data) {
+            const content = document.getElementById('content');
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Status</td><td class="status active">${data.status.toUpperCase()}</td></tr>
+                        <tr><td>Uptime (seconds)</td><td>${Math.floor(data.uptime)}</td></tr>
+                        <tr><td>Timestamp</td><td>${new Date(data.timestamp).toISOString()}</td></tr>
+                    </tbody>
+                </table>
+            `;
+
+            content.innerHTML = html;
+            document.getElementById('recordInfo').textContent = 'Health Check';
+        }
+
+        function showDetail(index) {
+            const business = currentData[index];
+            if (!business) return;
+
+            document.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+            document.getElementById(`row-${index}`)?.classList.add('selected');
+
+            const panel = document.getElementById('detailPanel');
+            const content = document.getElementById('detailContent');
+
+            content.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-section-title">General Information</div>
+                    <div class="detail-row"><div class="detail-label">ID:</div><div class="detail-value">${business.id || index + 1}</div></div>
+                    <div class="detail-row"><div class="detail-label">Name:</div><div class="detail-value">${escapeHtml(business.name)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Category:</div><div class="detail-value">${escapeHtml(business.category)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Status:</div><div class="detail-value">${business.status}</div></div>
+                    <div class="detail-row"><div class="detail-label">Rating:</div><div class="detail-value">${business.rating} / 5.0</div></div>
+                    <div class="detail-row"><div class="detail-label">Reviews:</div><div class="detail-value">${business.reviewCount}</div></div>
+                    <div class="detail-row"><div class="detail-label">Featured:</div><div class="detail-value">${business.featured ? 'Yes' : 'No'}</div></div>
+                    <div class="detail-row"><div class="detail-label">Verified:</div><div class="detail-value">${business.verified ? 'Yes' : 'No'}</div></div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">Contact Information</div>
+                    <div class="detail-row"><div class="detail-label">Phone:</div><div class="detail-value">${escapeHtml(business.phone)}</div></div>
+                    ${business.phoneName ? `<div class="detail-row"><div class="detail-label">Contact:</div><div class="detail-value">${escapeHtml(business.phoneName)}</div></div>` : ''}
+                    ${business.email ? `<div class="detail-row"><div class="detail-label">Email:</div><div class="detail-value">${escapeHtml(business.email)}</div></div>` : ''}
+                    ${business.website ? `<div class="detail-row"><div class="detail-label">Website:</div><div class="detail-value"><a href="${business.website}" target="_blank">${business.website}</a></div></div>` : ''}
+                    ${business.whatsapp ? `<div class="detail-row"><div class="detail-label">WhatsApp:</div><div class="detail-value">${escapeHtml(business.whatsapp)}</div></div>` : ''}
+                    ${business.instagram ? `<div class="detail-row"><div class="detail-label">Instagram:</div><div class="detail-value"><a href="${business.instagram}" target="_blank">View Profile</a></div></div>` : ''}
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">Location</div>
+                    <div class="detail-row"><div class="detail-label">Address:</div><div class="detail-value">${escapeHtml(business.address)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Latitude:</div><div class="detail-value">${business.coordinates.lat}</div></div>
+                    <div class="detail-row"><div class="detail-label">Longitude:</div><div class="detail-value">${business.coordinates.lng}</div></div>
+                    ${business.mapLink ? `<div class="detail-row"><div class="detail-label">Map:</div><div class="detail-value"><a href="${business.mapLink}" target="_blank">Open in Google Maps</a></div></div>` : ''}
+                </div>
+            `;
+
+            panel.classList.add('show');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('show');
+            document.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+        }
+
+        function refreshData() {
+            executeQuery();
+        }
+
+        function resetForm() {
+            document.getElementById('endpoint').value = 'businesses';
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('featuredFilter').value = '';
+            document.getElementById('limit').value = '50';
+            document.getElementById('offset').value = '0';
+            document.getElementById('searchField').style.display = 'none';
+            document.getElementById('filterFields').style.display = 'block';
+        }
+
+        function exportCSV() {
+            if (!currentData.length) {
+                alert('No data to export');
+                return;
+            }
+
+            const headers = Object.keys(currentData[0]);
+            const rows = currentData.map(obj => headers.map(h => {
+                const val = obj[h];
+                if (typeof val === 'object') return JSON.stringify(val);
+                return String(val || '');
+            }).join(','));
+
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `export_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
