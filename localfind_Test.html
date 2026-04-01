@@ -18,30 +18,61 @@
         :root {
             --color-bg: #ffffff;
             --color-surface: #f8f9fa;
+            --color-surface-hover: #f1f3f5;
             --color-border: #e9ecef;
+            --color-border-hover: #dee2e6;
             --color-text-primary: #212529;
             --color-text-secondary: #6c757d;
             --color-text-tertiary: #adb5bd;
             --color-primary: #2563eb;
             --color-primary-hover: #1d4ed8;
+            --color-primary-light: #dbeafe;
             --color-success: #16a34a;
+            --color-success-light: #dcfce7;
             --color-warning: #ea580c;
+            --color-warning-light: #ffedd5;
             --color-danger: #dc2626;
+            --color-danger-light: #fee2e2;
             --color-info: #0891b2;
+            --color-info-light: #cffafe;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             --radius-sm: 4px;
             --radius-md: 6px;
             --radius-lg: 8px;
+            --radius-xl: 12px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--color-surface);
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
             color: var(--color-text-primary);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-tertiary);
         }
 
         .container {
@@ -54,12 +85,25 @@
         .header {
             background: var(--color-bg);
             border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             padding: 24px 32px;
             margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-info));
         }
 
         .header-brand {
@@ -125,12 +169,38 @@
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
             padding: 20px;
-            transition: all 0.2s ease;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
         .stat-card:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
             border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+            background: var(--color-primary-light);
+            color: var(--color-primary);
         }
 
         .stat-header {
@@ -158,6 +228,7 @@
             justify-content: center;
             color: var(--color-primary);
             font-size: 16px;
+            transition: var(--transition);
         }
 
         .stat-value {
@@ -178,9 +249,12 @@
         .control-panel {
             background: var(--color-bg);
             border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             padding: 24px;
             height: fit-content;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 24px;
         }
 
         .panel-title {
@@ -213,17 +287,23 @@
             font-size: 14px;
             font-family: inherit;
             color: var(--color-text-primary);
-            transition: all 0.2s ease;
+            transition: var(--transition);
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: var(--color-primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: var(--color-bg);
         }
 
         select:hover, input:hover {
-            border-color: var(--color-text-tertiary);
+            border-color: var(--color-border-hover);
+            background: var(--color-surface-hover);
+        }
+
+        input::placeholder {
+            color: var(--color-text-tertiary);
         }
 
         .form-grid {
@@ -242,28 +322,56 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
         .btn-primary:hover {
             background: var(--color-primary-hover);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary:active {
-            transform: translateY(1px);
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         /* Results Section */
         .results-section {
             background: var(--color-bg);
             border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             padding: 24px;
+            box-shadow: var(--shadow-sm);
+            min-height: 400px;
         }
 
         .results-header {
@@ -298,12 +406,31 @@
             border-radius: var(--radius-lg);
             padding: 20px;
             margin-bottom: 16px;
-            transition: all 0.2s ease;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .business-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--color-primary);
+            border-radius: 4px 0 0 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .business-card:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
             border-color: var(--color-primary);
+            transform: translateX(4px);
+        }
+
+        .business-card:hover::after {
+            opacity: 1;
         }
 
         .business-header {
@@ -369,20 +496,29 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             color: var(--color-text-secondary);
+            flex-shrink: 0;
         }
 
         .expand-btn:hover {
             background: var(--color-primary);
             border-color: var(--color-primary);
             color: white;
+            transform: scale(1.1);
         }
 
         .expand-btn.active {
             background: var(--color-primary);
             border-color: var(--color-primary);
             color: white;
+        }
+
+        .expand-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-btn.active i {
             transform: rotate(180deg);
         }
 
@@ -416,11 +552,14 @@
         .business-details {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
         }
 
         .business-details.show {
             max-height: 5000px;
+            opacity: 1;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease 0.1s;
         }
 
         .details-content {
@@ -488,6 +627,13 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--color-border);
             text-align: center;
+            transition: var(--transition);
+        }
+
+        .hour-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
         }
 
         .hour-day {
@@ -519,13 +665,16 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--color-text-secondary);
-            transition: all 0.2s ease;
+            transition: var(--transition);
+            cursor: pointer;
         }
 
         .tag:hover {
             background: var(--color-primary);
             border-color: var(--color-primary);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         .reviews-container {
@@ -538,6 +687,13 @@
             padding: 16px;
             border-radius: var(--radius-md);
             border-left: 3px solid var(--color-primary);
+            transition: var(--transition);
+        }
+
+        .review-card:hover {
+            background: var(--color-bg);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(4px);
         }
 
         .review-header {
@@ -592,7 +748,7 @@
             font-size: 14px;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             border: 1px solid;
         }
 
@@ -604,7 +760,8 @@
 
         .action-btn-primary:hover {
             background: var(--color-primary-hover);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
         }
 
         .action-btn-success {
@@ -615,7 +772,8 @@
 
         .action-btn-success:hover {
             background: #15803d;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
         }
 
         .action-btn-danger {
@@ -626,7 +784,12 @@
 
         .action-btn-danger:hover {
             background: #b91c1c;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
         }
 
         .loading-state, .empty-state {
@@ -673,6 +836,113 @@
             font-size: 14px;
             margin-bottom: 8px;
             font-weight: 700;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-success { border-left: 3px solid var(--color-success); }
+        .toast-error { border-left: 3px solid var(--color-danger); }
+        .toast-info { border-left: 3px solid var(--color-info); }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        /* Skeleton Loader */
+        .skeleton {
+            background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 60%;
+            margin-bottom: 16px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text:last-child {
+            width: 80%;
+        }
+
+        /* Keyboard Shortcut Hint */
+        .kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Inter', monospace;
+            color: var(--color-text-secondary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .shortcut-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border);
         }
 
         /* Responsive */
@@ -778,6 +1048,11 @@
                     <i class="fas fa-play"></i>
                     <span>Execute Request</span>
                 </button>
+
+                <div class="shortcut-hint">
+                    <i class="fas fa-keyboard"></i>
+                    <span>Press <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> to execute</span>
+                </div>
             </aside>
 
             <main class="results-section">
@@ -803,6 +1078,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadStats();
             loadCategories();
+            initKeyboardShortcuts();
         });
 
         document.getElementById('endpoint').addEventListener('change', (e) => {
@@ -810,6 +1086,66 @@
             document.getElementById('searchGroup').style.display = endpoint === 'search' ? 'block' : 'none';
             document.getElementById('filterGroup').style.display = endpoint === 'businesses' ? 'block' : 'none';
         });
+
+        // Keyboard shortcuts
+        function initKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + Enter to execute
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    fetchData();
+                }
+                // Escape to close expanded cards
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.business-details.show').forEach(detail => {
+                        detail.classList.remove('show');
+                        const btn = detail.previousElementSibling.querySelector('.expand-btn');
+                        if (btn) btn.classList.remove('active');
+                    });
+                }
+            });
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        'fa-info-circle';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${icon}" style="color: var(--color-${type})"></i>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Skeleton loader
+        function showSkeletonLoader() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = Array(3).fill(0).map(() => `
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            `).join('');
+        }
 
         async function loadStats() {
             try {
@@ -886,12 +1222,7 @@
             const resultsDiv = document.getElementById('results');
             const resultsCount = document.getElementById('resultsCount');
             
-            resultsDiv.innerHTML = `
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Loading data...</div>
-                </div>
-            `;
+            showSkeletonLoader();
             resultsCount.textContent = '';
             
             try {
@@ -910,6 +1241,7 @@
                     const query = document.getElementById('searchQuery').value;
                     if (!query) {
                         resultsDiv.innerHTML = '<div class="error-state"><strong>Error</strong>Please enter a search query</div>';
+                        showToast('Please enter a search query', 'error');
                         return;
                     }
                     params.append('q', query);
@@ -921,9 +1253,11 @@
                 const data = await response.json();
                 
                 displayResults(data, endpoint);
+                showToast('Data loaded successfully', 'success');
                 
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error-state"><strong>Error</strong>${error.message}</div>`;
+                showToast('Failed to load data', 'error');
             }
         }
 
