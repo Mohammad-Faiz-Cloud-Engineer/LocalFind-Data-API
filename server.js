@@ -76,13 +76,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - bind to 0.0.0.0 for Docker/HuggingFace Spaces
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║         LocalFind Data API Server                         ║
 ║                                                           ║
-║  Server running on: http://localhost:${PORT}              ║
+║  Server running on: http://0.0.0.0:${PORT}                ║
 ║  Author: Mohammad Faiz                                    ║
 ║  License: BSD-2-Clause                                    ║
 ║                                                           ║
