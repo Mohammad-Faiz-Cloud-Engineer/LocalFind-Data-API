@@ -21,6 +21,7 @@ Just start using it. If you want to self-host your own instance, the code is ope
 ## Start Here
 
 - **[Getting Started](getting-started.md)** - Make your first API call in 5 minutes
+- **[Displaying Business Details](displaying-business-details.md)** - Show all business info on your webpage
 - **[API Reference](api-reference.md)** - All the endpoints and what they do
 - **[FAQ](faq.md)** - Questions people keep asking
 
