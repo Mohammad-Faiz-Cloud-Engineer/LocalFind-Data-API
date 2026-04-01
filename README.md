@@ -194,6 +194,7 @@ function BusinessList() {
 More examples for Vue, Angular, Next.js, etc: [docs/api-reference.md](docs/api-reference.md)
 
 - **[Getting Started](docs/getting-started.md)** - First API call in 5 minutes
+- **[Displaying Business Details](docs/displaying-business-details.md)** - Show all business info on your webpage
 - **[API Reference](docs/api-reference.md)** - All the endpoints
 - **[FAQ](docs/faq.md)** - Questions people actually ask
 
