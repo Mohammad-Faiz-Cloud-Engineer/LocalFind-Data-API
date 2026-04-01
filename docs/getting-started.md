@@ -172,6 +172,7 @@ try {
 
 ## What's Next?
 
+- **[Displaying Business Details](displaying-business-details.md)** - Learn how to show all business info on your webpage
 - [API Reference](api-reference.md) - All the endpoints and options
 - [FAQ](faq.md) - Common questions
 
