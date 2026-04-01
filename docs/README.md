@@ -8,6 +8,16 @@ It's an API that gives you business listings. No signup, no API keys, no payment
 
 I built it because I needed something like this and everything else either cost money or was a pain to use.
 
+## The API is Live!
+
+You don't need to deploy anything. I'm hosting it for free on HuggingFace Spaces:
+
+```
+https://huggingface.co/spaces/LocalFind/LocalFind/api
+```
+
+Just start using it. If you want to self-host your own instance, the code is open-source and you can deploy it yourself (see the main [README](../README.md)).
+
 ## Start Here
 
 - **[Getting Started](getting-started.md)** - Make your first API call in 5 minutes
