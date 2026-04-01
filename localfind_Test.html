@@ -1005,10 +1005,24 @@
     <script>
         const API_BASE = 'https://localfind-localfind.hf.space/api';
 
+        // XSS Protection - Escape HTML entities
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Check if value exists and is not empty string
+        function hasValue(val) {
+            return val !== undefined && val !== null && val !== '';
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             loadStats();
             loadCategories();
             initKeyboardShortcuts();
+            initEventDelegation();
         });
 
         document.getElementById('endpoint').addEventListener('change', (e) => {
@@ -1020,6 +1034,7 @@
         // Keyboard shortcuts
         function initKeyboardShortcuts() {
             document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + Enter to execute
                 // Ctrl/Cmd + Enter to execute
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
@@ -1039,7 +1054,10 @@
         // Toast notification
         function showToast(message, type = 'info') {
             const existingToast = document.querySelector('.toast');
-            if (existingToast) existingToast.remove();
+            if (existingToast) {
+                existingToast.classList.remove('show');
+                setTimeout(() => existingToast.remove(), 300);
+            }
 
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
@@ -1052,7 +1070,7 @@
                 <div class="toast-icon">
                     <i class="fas ${icon}" style="color: var(--color-${type})"></i>
                 </div>
-                <div class="toast-message">${message}</div>
+                <div class="toast-message">${escapeHtml(message)}</div>
             `;
             
             document.body.appendChild(toast);
@@ -1086,6 +1104,11 @@
                         'Pragma': 'no-cache'
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1131,6 +1154,7 @@
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
+                showToast('Failed to load statistics', 'error');
             }
         }
 
@@ -1143,6 +1167,11 @@
                         'Pragma': 'no-cache'
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1156,6 +1185,7 @@
                 }
             } catch (error) {
                 console.error('Error loading categories:', error);
+                showToast('Failed to load categories', 'error');
             }
         }
 
@@ -1202,6 +1232,11 @@
                         'Pragma': 'no-cache'
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 displayResults(data, endpoint);
@@ -1217,13 +1252,26 @@
             const details = document.getElementById(`details-${index}`);
             const btn = document.getElementById(`btn-${index}`);
             
-            if (details.classList.contains('show')) {
-                details.classList.remove('show');
-                btn.classList.remove('active');
-            } else {
-                details.classList.add('show');
-                btn.classList.add('active');
+            if (details && btn) {
+                if (details.classList.contains('show')) {
+                    details.classList.remove('show');
+                    btn.classList.remove('active');
+                } else {
+                    details.classList.add('show');
+                    btn.classList.add('active');
+                }
             }
+        }
+
+        // Event delegation for better memory management
+        function initEventDelegation() {
+            document.getElementById('results').addEventListener('click', (e) => {
+                const expandBtn = e.target.closest('.expand-btn');
+                if (expandBtn) {
+                    const index = expandBtn.id.replace('btn-', '');
+                    toggleDetails(index);
+                }
+            });
         }
 
         function displayResults(data, endpoint) {
@@ -1328,13 +1376,13 @@
                     <div class="business-header">
                         <div class="business-title-row">
                             <div class="business-name">
-                                <span>${business.name}</span>
+                                <span>${escapeHtml(business.name)}</span>
                                 ${business.featured ? '<span class="badge badge-featured">Featured</span>' : ''}
                                 ${business.verified ? '<span class="badge badge-verified">Verified</span>' : ''}
                             </div>
-                            <span class="category-tag">${business.category}</span>
+                            <span class="category-tag">${escapeHtml(business.category)}</span>
                         </div>
-                        <button class="expand-btn" id="btn-${index}" onclick="toggleDetails(${index})">
+                        <button class="expand-btn" id="btn-${index}" data-index="${index}">
                             <i class="fas fa-chevron-down"></i>
                         </button>
                     </div>
@@ -1342,51 +1390,107 @@
                     <div class="business-meta">
                         <div class="meta-item">
                             <i class="fas fa-star meta-icon"></i>
-                            <span>${business.rating} (${business.reviewCount} reviews)</span>
+                            <span>${escapeHtml(String(business.rating))} (${escapeHtml(String(business.reviewCount))} reviews)</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-phone meta-icon"></i>
-                            <span>${business.phone}</span>
+                            <span>${escapeHtml(business.phone)}${business.phoneName ? ` (${escapeHtml(business.phoneName)})` : ''}${business.phoneSecondary ? ' +' + (business.phoneThird ? '2 more' : '1 more') : ''}</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-envelope meta-icon"></i>
-                            <span>${business.email || 'N/A'}</span>
+                            <span>${escapeHtml(business.email || 'N/A')}</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-circle meta-icon"></i>
-                            <span>${business.status}</span>
+                            <span>${escapeHtml(business.status)}</span>
                         </div>
+                        ${business.tenants && business.tenants.length > 0 ? `<div class="meta-item"><i class="fas fa-store meta-icon"></i><span>Tenants: ${business.tenants.length}</span></div>` : ''}
                     </div>
                     
-                    <p class="business-description">${business.description.substring(0, 200)}...</p>
+                    <p class="business-description">${escapeHtml(business.description.substring(0, 200))}...</p>
                     
                     <div class="business-details" id="details-${index}">
                         <div class="details-content">
                             <div class="detail-section">
                                 <h3><i class="fas fa-file-alt"></i> Full Description</h3>
-                                <p style="color: var(--color-text-secondary); line-height: 1.6;">${business.description}</p>
+                                <p style="color: var(--color-text-secondary); line-height: 1.6;">${escapeHtml(business.description)}</p>
                             </div>
 
                             <div class="detail-section">
                                 <h3><i class="fas fa-address-card"></i> Contact Information</h3>
                                 <div class="detail-grid">
-                                    <div class="detail-item"><i class="fas fa-phone meta-icon"></i> <strong>Phone:</strong> ${business.phone}</div>
-                                    ${business.phoneName ? `<div class="detail-item"><i class="fas fa-user meta-icon"></i> <strong>Contact:</strong> ${business.phoneName}</div>` : ''}
-                                    ${business.email ? `<div class="detail-item"><i class="fas fa-envelope meta-icon"></i> <strong>Email:</strong> ${business.email}</div>` : ''}
-                                    ${business.website ? `<div class="detail-item"><i class="fas fa-globe meta-icon"></i> <strong>Website:</strong> <a href="${business.website}" target="_blank">Visit</a></div>` : ''}
-                                    ${business.whatsapp ? `<div class="detail-item"><i class="fab fa-whatsapp meta-icon"></i> <strong>WhatsApp:</strong> ${business.whatsapp}</div>` : ''}
-                                    ${business.instagram ? `<div class="detail-item"><i class="fab fa-instagram meta-icon"></i> <strong>Instagram:</strong> <a href="${business.instagram}" target="_blank">View</a></div>` : ''}
+                                    <div class="detail-item"><i class="fas fa-phone meta-icon"></i> <strong>Phone:</strong> ${escapeHtml(business.phone)}${business.phoneName ? ` (${escapeHtml(business.phoneName)})` : ''}</div>
+                                    ${hasValue(business.phoneSecondary) ? `<div class="detail-item"><i class="fas fa-phone meta-icon"></i> <strong>Phone 2:</strong> ${escapeHtml(business.phoneSecondary)}${business.phoneSecondaryName ? ` (${escapeHtml(business.phoneSecondaryName)})` : ''}</div>` : ''}
+                                    ${hasValue(business.phoneThird) ? `<div class="detail-item"><i class="fas fa-phone meta-icon"></i> <strong>Phone 3:</strong> ${escapeHtml(business.phoneThird)}${business.phoneThirdName ? ` (${escapeHtml(business.phoneThirdName)})` : ''}</div>` : ''}
+                                    ${hasValue(business.phoneFourth) ? `<div class="detail-item"><i class="fas fa-phone meta-icon"></i> <strong>Phone 4:</strong> ${escapeHtml(business.phoneFourth)}${business.phoneFourthName ? ` (${escapeHtml(business.phoneFourthName)})` : ''}</div>` : ''}
+                                    ${hasValue(business.email) ? `<div class="detail-item"><i class="fas fa-envelope meta-icon"></i> <strong>Email:</strong> ${escapeHtml(business.email)}</div>` : ''}
+                                    ${hasValue(business.website) ? `<div class="detail-item"><i class="fas fa-globe meta-icon"></i> <strong>Website:</strong> <a href="${escapeHtml(business.website)}" target="_blank" rel="noopener noreferrer">Visit</a></div>` : ''}
+                                    ${hasValue(business.whatsapp) ? `<div class="detail-item"><i class="fab fa-whatsapp meta-icon"></i> <strong>WhatsApp:</strong> ${escapeHtml(business.whatsapp)}</div>` : ''}
+                                    ${hasValue(business.instagram) ? `<div class="detail-item"><i class="fab fa-instagram meta-icon"></i> <strong>Instagram:</strong> <a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener noreferrer">View</a></div>` : ''}
+                                    ${hasValue(business.youtube) ? `<div class="detail-item"><i class="fab fa-youtube meta-icon"></i> <strong>YouTube:</strong> <a href="${escapeHtml(business.youtube)}" target="_blank" rel="noopener noreferrer">Watch</a></div>` : ''}
+                                    ${hasValue(business.onlineOrder) ? `<div class="detail-item"><i class="fas fa-shopping-bag meta-icon"></i> <strong>Order Online:</strong> <a href="${escapeHtml(business.onlineOrder)}" target="_blank" rel="noopener noreferrer">Order Now</a></div>` : ''}
+                                    ${hasValue(business.zomato) ? `<div class="detail-item"><i class="fas fa-utensils meta-icon"></i> <strong>Zomato:</strong> <a href="${escapeHtml(business.zomato)}" target="_blank" rel="noopener noreferrer">Order</a></div>` : ''}
+                                    ${hasValue(business.bookMyShow) ? `<div class="detail-item"><i class="fas fa-ticket-alt meta-icon"></i> <strong>BookMyShow:</strong> <a href="${escapeHtml(business.bookMyShow)}" target="_blank" rel="noopener noreferrer">Book Tickets</a></div>` : ''}
+                                    ${hasValue(business.districtIn) ? `<div class="detail-item"><i class="fas fa-film meta-icon"></i> <strong>District.in:</strong> <a href="${escapeHtml(business.districtIn)}" target="_blank" rel="noopener noreferrer">Book Tickets</a></div>` : ''}
+                                    ${hasValue(business.bloodDonor) ? `<div class="detail-item"><i class="fas fa-tint meta-icon"></i> <strong>Blood Donor:</strong> <a href="${escapeHtml(business.bloodDonor)}" target="_blank" rel="noopener noreferrer">Register</a></div>` : ''}
                                 </div>
                             </div>
 
                             <div class="detail-section">
                                 <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
-                                <p style="color: var(--color-text-secondary); margin-bottom: 12px;">${business.address}</p>
+                                <p style="color: var(--color-text-secondary); margin-bottom: 12px;">${escapeHtml(business.address)}</p>
                                 <div class="detail-grid">
-                                    <div class="detail-item"><i class="fas fa-map-pin meta-icon"></i> <strong>Coordinates:</strong> ${business.coordinates.lat}, ${business.coordinates.lng}</div>
-                                    ${business.mapLink ? `<div class="detail-item"><i class="fas fa-map meta-icon"></i> <a href="${business.mapLink}" target="_blank">Open in Google Maps</a></div>` : ''}
+                                    <div class="detail-item"><i class="fas fa-map-pin meta-icon"></i> <strong>Coordinates:</strong> ${escapeHtml(String(business.coordinates.lat))}, ${escapeHtml(String(business.coordinates.lng))}</div>
+                                    ${hasValue(business.mapLink) ? `<div class="detail-item"><i class="fas fa-map meta-icon"></i> <a href="${escapeHtml(business.mapLink)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></div>` : ''}
                                 </div>
                             </div>
+
+                            ${business.tenants && business.tenants.length > 0 ? `
+                            <div class="detail-section">
+                                <h3><i class="fas fa-store"></i> Tenant Businesses (${business.tenants.length})</h3>
+                                <div class="reviews-container">
+                                    ${business.tenants.map(tenantId => {
+                                        const tenant = businesses.find(b => b.id === tenantId);
+                                        if (!tenant) {
+                                            return `
+                                                <div class="review-card" style="border-left-color: var(--color-warning);">
+                                                    <div style="color: var(--color-text-secondary); font-size: 0.875rem;">
+                                                        <i class="fas fa-exclamation-triangle"></i> Tenant data not available in current results (ID: ${escapeHtml(String(tenantId))})
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }
+                                        return `
+                                            <div class="review-card" style="border-left-color: var(--color-info);">
+                                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                                    <div>
+                                                        <div style="font-weight: 700; font-size: 1.0625rem; color: var(--color-text-primary); margin-bottom: 4px;">
+                                                            ${escapeHtml(tenant.name)}
+                                                        </div>
+                                                        <div style="color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 500;">
+                                                            ${escapeHtml(tenant.category)}
+                                                        </div>
+                                                    </div>
+                                                    <div style="text-align: right;">
+                                                        <div style="color: #f59e0b; font-size: 0.9375rem;">★ ${escapeHtml(String(tenant.rating))}</div>
+                                                        <div style="color: var(--color-text-tertiary); font-size: 0.8125rem;">${escapeHtml(String(tenant.reviewCount))} reviews</div>
+                                                    </div>
+                                                </div>
+                                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 8px;">
+                                                    ${tenant.phone ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--color-text-secondary);"><i class="fas fa-phone" style="width: 14px;"></i> ${escapeHtml(tenant.phone)}</div>` : ''}
+                                                    ${tenant.email ? `<div style="display: flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--color-text-secondary);"><i class="fas fa-envelope" style="width: 14px;"></i> ${escapeHtml(tenant.email)}</div>` : ''}
+                                                </div>
+                                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                                                    ${hasValue(tenant.phone) ? `<a href="tel:${escapeHtml(tenant.phone)}" class="action-btn action-btn-primary" style="padding: 8px 14px; font-size: 0.8125rem;"><i class="fas fa-phone"></i> Call</a>` : ''}
+                                                    ${hasValue(tenant.mapLink) ? `<a href="${escapeHtml(tenant.mapLink)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary" style="padding: 8px 14px; font-size: 0.8125rem;"><i class="fas fa-map-marker-alt"></i> Directions</a>` : ''}
+                                                    ${hasValue(tenant.website) ? `<a href="${escapeHtml(tenant.website)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary" style="padding: 8px 14px; font-size: 0.8125rem;"><i class="fas fa-globe"></i> Website</a>` : ''}
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
 
                             ${business.hours ? `
                             <div class="detail-section">
@@ -1410,7 +1514,7 @@
                             <div class="detail-section">
                                 <h3><i class="fas fa-tags"></i> Tags</h3>
                                 <div class="tags-container">
-                                    ${business.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                    ${business.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
                                 </div>
                             </div>
                             ` : ''}
@@ -1423,15 +1527,15 @@
                                         <div class="review-card">
                                             <div class="review-header">
                                                 <div>
-                                                    <div class="review-author">${review.author}</div>
-                                                    ${review.role ? `<div class="review-role">${review.role}</div>` : ''}
+                                                    <div class="review-author">${escapeHtml(review.author)}</div>
+                                                    ${review.role ? `<div class="review-role">${escapeHtml(review.role)}</div>` : ''}
                                                 </div>
                                                 <div>
                                                     <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div>
-                                                    <div class="review-date">${review.date}</div>
+                                                    <div class="review-date">${escapeHtml(review.date)}</div>
                                                 </div>
                                             </div>
-                                            <p class="review-text">${review.text}</p>
+                                            <p class="review-text">${escapeHtml(review.text)}</p>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1442,18 +1546,27 @@
                             <div class="detail-section">
                                 <h3><i class="fas fa-credit-card"></i> Payment Information</h3>
                                 <div class="detail-grid">
-                                    <div class="detail-item"><i class="fas fa-wallet meta-icon"></i> <strong>UPI ID:</strong> ${business.upiId}</div>
-                                    ${business.upiName ? `<div class="detail-item"><i class="fas fa-user meta-icon"></i> <strong>UPI Name:</strong> ${business.upiName}</div>` : ''}
+                                    <div class="detail-item"><i class="fas fa-wallet meta-icon"></i> <strong>UPI ID:</strong> ${escapeHtml(business.upiId)}</div>
+                                    ${business.upiName ? `<div class="detail-item"><i class="fas fa-user meta-icon"></i> <strong>UPI Name:</strong> ${escapeHtml(business.upiName)}</div>` : ''}
                                 </div>
                             </div>
                             ` : ''}
 
                             <div class="action-buttons">
-                                ${business.mapLink ? `<a href="${business.mapLink}" target="_blank" class="action-btn action-btn-primary"><i class="fas fa-map-marker-alt"></i> Open in Maps</a>` : ''}
-                                ${business.whatsapp ? `<a href="https://wa.me/${business.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="action-btn action-btn-success"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : ''}
-                                ${business.phone ? `<a href="tel:${business.phone}" class="action-btn action-btn-primary"><i class="fas fa-phone"></i> Call Now</a>` : ''}
-                                ${business.website ? `<a href="${business.website}" target="_blank" class="action-btn action-btn-primary"><i class="fas fa-globe"></i> Visit Website</a>` : ''}
-                                ${business.instagram ? `<a href="${business.instagram}" target="_blank" class="action-btn action-btn-danger"><i class="fab fa-instagram"></i> Instagram</a>` : ''}
+                                ${hasValue(business.mapLink) ? `<a href="${escapeHtml(business.mapLink)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary"><i class="fas fa-map-marker-alt"></i> Open in Maps</a>` : ''}
+                                ${hasValue(business.whatsapp) ? `<a href="https://wa.me/${escapeHtml(business.whatsapp.replace(/[^0-9]/g, ''))}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-success"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : ''}
+                                ${hasValue(business.phone) ? `<a href="tel:${escapeHtml(business.phone)}" class="action-btn action-btn-primary"><i class="fas fa-phone"></i> Call ${escapeHtml(business.phoneName || 'Now')}</a>` : ''}
+                                ${hasValue(business.phoneSecondary) ? `<a href="tel:${escapeHtml(business.phoneSecondary)}" class="action-btn action-btn-primary"><i class="fas fa-phone"></i> Call ${escapeHtml(business.phoneSecondaryName || 'Phone 2')}</a>` : ''}
+                                ${hasValue(business.phoneThird) ? `<a href="tel:${escapeHtml(business.phoneThird)}" class="action-btn action-btn-primary"><i class="fas fa-phone"></i> Call ${escapeHtml(business.phoneThirdName || 'Phone 3')}</a>` : ''}
+                                ${hasValue(business.phoneFourth) ? `<a href="tel:${escapeHtml(business.phoneFourth)}" class="action-btn action-btn-primary"><i class="fas fa-phone"></i> Call ${escapeHtml(business.phoneFourthName || 'Phone 4')}</a>` : ''}
+                                ${hasValue(business.website) ? `<a href="${escapeHtml(business.website)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary"><i class="fas fa-globe"></i> Visit Website</a>` : ''}
+                                ${hasValue(business.instagram) ? `<a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-danger"><i class="fab fa-instagram"></i> Instagram</a>` : ''}
+                                ${hasValue(business.youtube) ? `<a href="${escapeHtml(business.youtube)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-danger" style="background: #FF0000; border-color: #FF0000;"><i class="fab fa-youtube"></i> YouTube</a>` : ''}
+                                ${hasValue(business.onlineOrder) ? `<a href="${escapeHtml(business.onlineOrder)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-success"><i class="fas fa-shopping-bag"></i> Order Online</a>` : ''}
+                                ${hasValue(business.zomato) ? `<a href="${escapeHtml(business.zomato)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-danger" style="background: #E23744; border-color: #E23744;"><i class="fas fa-utensils"></i> Zomato</a>` : ''}
+                                ${hasValue(business.bookMyShow) ? `<a href="${escapeHtml(business.bookMyShow)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-danger" style="background: #C4242B; border-color: #C4242B;"><i class="fas fa-ticket-alt"></i> BookMyShow</a>` : ''}
+                                ${hasValue(business.districtIn) ? `<a href="${escapeHtml(business.districtIn)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary" style="background: #1A1A1A; border-color: #1A1A1A;"><i class="fas fa-film"></i> District.in</a>` : ''}
+                                ${hasValue(business.bloodDonor) ? `<a href="${escapeHtml(business.bloodDonor)}" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-danger"><i class="fas fa-tint"></i> Blood Donor</a>` : ''}
                             </div>
                         </div>
                     </div>
