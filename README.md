@@ -9,7 +9,7 @@ app_port: 3000
 
 # LocalFind Data API
 
-Free local business data. No signup, no API keys, no BS.
+Free local business data API. No signup, no API keys, no BS.
 
 Made by [Mohammad Faiz](https://github.com/Mohammad-Faiz-Cloud-Engineer) • [BSD 2-Clause License](LICENSE)
 
@@ -17,57 +17,70 @@ Made by [Mohammad Faiz](https://github.com/Mohammad-Faiz-Cloud-Engineer) • [BS
 
 ## What's This?
 
-I got tired of hunting for decent local business data APIs that either wanted money or made you jump through authentication hoops. So I built this.
+I got tired of hunting for decent local business data APIs that either wanted money or made you jump through authentication hoops. So I built this and I'm hosting it for free.
 
 It's simple: you make a request, you get business data. That's it.
 
 ## Try It Right Now
 
-Seriously, just click this (once deployed on HuggingFace Spaces):
+The API is live and ready to use. Seriously, just click this:
 ```
-https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api/businesses
+https://huggingface.co/spaces/LocalFind/LocalFind/api/businesses
 ```
 
 Or paste this in your console:
 
 ```javascript
-fetch('https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api/businesses?featured=true')
+fetch('https://huggingface.co/spaces/LocalFind/LocalFind/api/businesses?featured=true')
   .then(res => res.json())
   .then(data => console.log(data));
 ```
 
 No account creation, no API key dance, no credit card "just for verification." It just works.
 
-> **Note:** Replace `YOUR_USERNAME/YOUR_SPACE_NAME` with your actual HuggingFace Space URL after deployment.
+## Use My Hosted API (Recommended)
 
-## Deploy to HuggingFace Spaces
+I'm hosting this API for free on HuggingFace Spaces. Just use it directly:
 
-This API is designed to run on HuggingFace Spaces with Docker.
+**Base URL:** `https://huggingface.co/spaces/LocalFind/LocalFind/api`
 
-### Quick Deploy
+You don't need to deploy anything. Just start making requests.
+
+## Want to Self-Host? (Optional)
+
+The API is already hosted and free to use, but if you want your own instance:
+
+### Deploy to HuggingFace Spaces
 
 1. Fork this repository on GitHub
 2. Go to [HuggingFace Spaces](https://huggingface.co/spaces)
 3. Click "Create new Space"
 4. Choose "Docker" as SDK
-5. Connect your GitHub repository
-6. The Space will automatically detect the configuration from the README.md
-7. Wait for it to build and deploy
+5. Connect your forked repository
+6. Wait for it to build and deploy
 
-That's it! Your API will be live at:
+Your own instance will be live at:
 ```
 https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api
 ```
 
-### Configuration
+(Replace YOUR_USERNAME and YOUR_SPACE_NAME with your actual HuggingFace username and space name)
 
-The repository includes everything HuggingFace needs:
+### Run Locally
 
-- **README.md** - Contains the YAML configuration block at the top
-- **Dockerfile** - Defines the container
-- **app_port: 3000** - The API runs on port 3000
+```bash
+git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/LocalFind-Data-API.git
+cd LocalFind-Data-API
+npm install
+npm start
+```
 
-No additional setup required!
+Or with Docker:
+
+```bash
+docker build -t localfind-api .
+docker run -p 3000:3000 localfind-api
+```
 
 ## What Can You Do With This?
 
@@ -82,9 +95,7 @@ Build whatever you want. Some ideas:
 
 ## How It Works
 
-Base URL: `https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api`
-
-> Replace with your actual Space URL after deployment
+Base URL: `https://huggingface.co/spaces/LocalFind/LocalFind/api`
 
 **Get all businesses:**
 ```
@@ -130,8 +141,7 @@ Full docs: [docs/api-reference.md](docs/api-reference.md)
 **JavaScript:**
 
 ```javascript
-// Replace with your Space URL
-const API_URL = 'https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api';
+const API_URL = 'https://huggingface.co/spaces/LocalFind/LocalFind/api';
 
 const response = await fetch(`${API_URL}/businesses?featured=true`);
 const data = await response.json();
@@ -146,8 +156,7 @@ data.data.forEach(business => {
 ```python
 import requests
 
-# Replace with your Space URL
-API_URL = 'https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api'
+API_URL = 'https://huggingface.co/spaces/LocalFind/LocalFind/api'
 
 r = requests.get(f'{API_URL}/businesses?featured=true')
 businesses = r.json()['data']
@@ -155,16 +164,13 @@ businesses = r.json()['data']
 for b in businesses:
     print(f"{b['name']} - {b['rating']}⭐")
 ```
-```
 
 **React:**
 
 ```jsx
 function BusinessList() {
   const [businesses, setBusinesses] = useState([]);
-  
-  // Replace with your Space URL
-  const API_URL = 'https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME/api';
+  const API_URL = 'https://huggingface.co/spaces/LocalFind/LocalFind/api';
   
   useEffect(() => {
     fetch(`${API_URL}/businesses?featured=true`)
@@ -186,26 +192,6 @@ function BusinessList() {
 ```
 
 More examples for Vue, Angular, Next.js, etc: [docs/api-reference.md](docs/api-reference.md)
-
-## Running Locally
-
-Want to test it on your machine first?
-
-```bash
-git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/LocalFind-Data-API.git
-cd LocalFind-Data-API
-npm install
-npm start
-```
-
-Now you've got it running at `http://localhost:3000`
-
-Or with Docker:
-
-```bash
-docker build -t localfind-api .
-docker run -p 3000:3000 localfind-api
-```
 
 - **[Getting Started](docs/getting-started.md)** - First API call in 5 minutes
 - **[API Reference](docs/api-reference.md)** - All the endpoints
